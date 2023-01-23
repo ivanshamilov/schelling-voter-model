@@ -11,14 +11,26 @@ plt.show()
 
 if __name__ == "__main__":
   
-  N = 10 # agents
-  L = 5  # lattice dimension
-  tolerance = 0.5 # tolerance
-  s = 0.3 # prestige of language
+  '''
+  Paper values 
+  L = 50
+  s = 0.5
+  tolerance = 0.3
+  prob_migrate = np.arange(0.02, 0.98, 0.04) # 24 steps
+  p_density = np.arange(0.02, 0.98, 0.04) # 24 steps
+  '''
+
+  # N = 50
+  # p = N / L ** 2
+
+  L = 10  # lattice dimension
+  density = 0.5 # formula = N / L ** 2 -> N (number of agents) can be estimated
+  tolerance = 0.3 # tolerance
+  prestige = 0.3 # prestige of language
   prob_migrate = 0.5 # possibility to migrate 
 
 
-  p = N / L ** 2
-  lattice = initialize(N, p)
+  lattice = initialize(L, density)
   print(lattice)
-  simulation(lattice, tolerance, prob_migrate)
+  simulation(lattice, tolerance, prob_migrate, prestige)
+  print(lattice)
