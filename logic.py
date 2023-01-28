@@ -2,7 +2,16 @@ import numpy as np
 from numba import njit
 import random
 import matplotlib.pyplot as plt
+import pickle 
 
+
+def save_pickle(filepath: str, data: np.array):
+  with open(filepath, "wb") as f:
+    pickle.dump(data, f)
+
+def load_pickle(filepath: str):
+  with open(filepath, "rb") as f:
+    return pickle.load(f)
 
 def plot_lattice(lattice: np.array, show_labels: bool = False):
     """

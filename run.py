@@ -46,7 +46,7 @@ if __name__ == "__main__":
   for i, prob_mig in enumerate(probs):
     sim_res = 0
     for j in range(num_iters):
-      print(f"Iteration {j + 1} out of {num_iters}")
+      print(f"Iteration {j + 1} out of {num_iters} for {prob_mig}")
       lattice = initialize(L, density)
       lattice = simulation(lattice, tolerance, prob_mig, prestige)
       res = fraction_minority_language(lattice)
@@ -55,7 +55,8 @@ if __name__ == "__main__":
 
     simulation_results[i] = sim_res / num_iters
 
-
-  plt.plot(probs, simulation_results)
+  save_pickle(f"fig1_density{density}.pickle", simulation_results)
+  res = load_pickle(f"fig1_density{density}.pickle")
+  plt.plot(probs, res)
   plt.ylim([-0.1, 1.1])
   plt.show()
