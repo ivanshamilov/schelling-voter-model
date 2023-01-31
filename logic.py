@@ -2,8 +2,47 @@ import numpy as np
 from numba import njit
 import random
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pickle 
+# sns.set_theme(style="whitegrid")
 
+@njit
+def empty_places_for(lattice: np.array, language: int, tolerance: np.float32):
+    empty_spots = find_empty_spots(lattice)
+    s = 0
+    for (x, y) in empty_spots:
+        tol, _ = find_tolerance(lattice, x, y, language) 
+        if tol < tolerance:
+            s += 1
+    return s
+
+def plot_scatters(results: list, xaxis: list, ylim: int, markers: list, xlabel: str, ylabel: str, title: str):
+    plt.figure(figsize=(10, 7))
+    print(results[0].shape)
+    colors = ["red", "black"]
+    for i, (result, marker) in enumerate(zip(results, markers)):
+        plt.scatter(x=range(xaxis), y=result, marker=marker, c=colors[i], s=60)
+    
+    plt.title(title)
+    plt.xlim([-1, xaxis])
+    plt.ylim([-1, ylim])
+    plt.xticks(fontsize=11)
+    plt.yticks(fontsize=11)
+    plt.xlabel(xlabel, fontsize=13)
+    plt.ylabel(ylabel, fontsize=13)
+    plt.show()
+
+def create_graphs(results: list, xaxis: np.array, legend_titles: list, xlabel: str, ylabel: str, title: str):
+    plt.figure(figsize=(11, 9))
+    for (result, legend_title) in zip(results, legend_titles):
+        sns.lineplot(x=xaxis, y=result, label=legend_title)
+    plt.title(title)
+    plt.xlim([0, 0.9])
+    plt.ylim([0, 0.5])
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.show()
 
 def save_pickle(filepath: str, data: np.array):
   with open(filepath, "wb") as f:
@@ -20,7 +59,7 @@ def plot_lattice(lattice: np.array, show_labels: bool = False):
     data_3d = np.ndarray(shape=(lattice.shape[0], lattice.shape[1], 3), dtype=int)
     color_map = {0: np.array([255, 255, 255]), # WHITE
                 1: np.array([0, 0, 0]), # BLACK
-                -1: np.array([255, 0, 0])} # blue 
+                -1: np.array([255, 0, 0])} # RED 
     for i in range(0, lattice.shape[0]):
         for j in range(0, lattice.shape[1]):
             data_3d[i][j] = color_map[lattice[i][j]]
@@ -73,6 +112,8 @@ def fraction_minority_language(lattice: np.array):
     Calculate the fraction of the minority language
     """
     speakers_1, speakers_2 = count_speakers(lattice)
+    if speakers_1 + speakers_2 == 0:
+        return 0
     return min(speakers_1, speakers_2) / (speakers_1 + speakers_2)
 
 @njit
@@ -172,22 +213,22 @@ def update(lattice: np.array, i: int, j: int, tolerance: float, prob_migrate: fl
     return lattice
 
 @njit
-def simulation(lattice: np.array, tolerance: float, prob_migrate: float, prestige: float):
+def simulation(lattice: np.array, tolerance: float, prob_migrate: float, prestige: float, run_for: int = 5000):
     """
     Single simulation for the whole lattice
     """
     N = lattice.shape[0]
-    run_for = 50000
     
     initial_values = count_speakers(lattice, 1)
-    # TODO: check time steps
     for i in range(run_for):
-        if i % 10000 == 0:
+        if i % (run_for / 5) == 0:
             print(f"Step {i} / {run_for}")
         agents = find_agents(lattice)
+        if agents.shape[0] == 0:
+            break
         x, y = agents[np.random.randint(agents.shape[0])] # make sure we choose agent (non-zero element)
         update(lattice, x, y, tolerance, prob_migrate, prestige)
-        if i % 100 == 0:
+        if i % 200 == 0:
             if general_tolerance(lattice, tolerance):
                 break
     
